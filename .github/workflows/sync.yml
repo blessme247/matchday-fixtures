@@ -1,0 +1,19 @@
+# Scheduled pull from the feed. Vercel's free plan only allows daily crons,
+# so the schedule lives here. Live scores don't depend on it: the live
+# endpoint reads the feed directly during matches.
+name: Sync fixtures
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync
+        run: |
+          curl --fail-with-body -sS -X POST "${{ secrets.SITE_URL }}/api/sync" \
+            -H "Authorization: Bearer ${{ secrets.REVALIDATE_SECRET }}" \
+            -H "Content-Type: application/json" -d '{}'

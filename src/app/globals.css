@@ -1,26 +1,172 @@
 @import "tailwindcss";
 
+/*
+ * Palette from Truss (hackathons/truss/dashboard/styles/tokens.css).
+ * Gold = in play right now, green = settled. Two deliberate deviations for
+ * WCAG AA: muted text is darkened from #8b8571 (3.4:1) to #6f6a57 (5.0:1),
+ * and gold is only ever a fill under ink text (6.0:1), never text itself.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: #faf6ed;
+  --blob: #f3c9a0;
+  --ink: #17140e;
+  --ink-2: #55503f;
+  --ink-3: #6f6a57;
+  --rule: #e4dcc8;
+  --rule-soft: #ede5d2;
+  --pill: #dfd5bc;
+  --gold: #c8862b;
+  --green: #1f4d3a;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-blob: var(--blob);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-pill: var(--pill);
+  --color-gold: var(--gold);
+  --color-green: var(--green);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-plex-mono);
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Small uppercase labels: positive tracking at small sizes. */
+.label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Decorative only; fixed so it can never take layout space. */
+.blob {
+  position: fixed;
+  top: -220px;
+  right: -180px;
+  width: 620px;
+  height: 620px;
+  border-radius: 999px;
+  background: var(--blob);
+  opacity: 0.28;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--pill);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.pill--static {
+  min-height: 0;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.75rem;
+}
+
+button.pill:active,
+a.pill:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.pill:hover,
+  a.pill:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+}
+
+.pill--selected,
+.pill--selected:hover {
+  background: var(--green);
+  border-color: var(--green) !important;
+  color: var(--background) !important;
+}
+
+.pill--live {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* "Live" heartbeat. Constant, small, and off for reduced motion. */
+.live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: currentColor;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/*
+ * Score tick: only applied when a score changes after load (never on first
+ * paint, so it can't delay LCP). Explains that the number just updated.
+ */
+.score-tick {
+  display: inline-block;
+  transition:
+    transform 220ms var(--ease-out),
+    opacity 220ms var(--ease-out);
+
+  @starting-style {
+    transform: translateY(35%);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+  .score-tick {
+    transition: opacity 150ms ease;
+    @starting-style {
+      transform: none;
+      opacity: 0;
+    }
+  }
+}
+
+/* Horizontal pill rows scroll on narrow screens without a visible bar. */
+.scroll-row {
+  scrollbar-width: none;
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
 }
