@@ -47,6 +47,27 @@ What the feed doesn't give you, and how the app handles it:
 
 **On Edge Functions:** Next.js 16 deprecates the Edge runtime for routes, and the MongoDB driver needs Node anyway. What used to be done at the edge is done with CDN caching headers, which handles match-day bursts better because most requests never reach a function.
 
+### Why polling, not WebSockets
+
+Live scores reach open tabs by polling `/api/live` every 15 seconds, not over a WebSocket. That's a deliberate choice for this page, not a shortcut:
+
+1. **The source is pull-only.** The feed has no push channel, so something has to poll it either way. A WebSocket would only change the last hop, server to browser, and wouldn't make the data arrive any sooner.
+2. **Vercel functions can't hold connections open.** They start, respond and stop. WebSockets would need separate infrastructure (Pusher or Ably, Cloudflare Durable Objects, AWS API Gateway WebSockets, or a long-running server), usually billed per concurrent connection. At match-day scale that's tens of thousands of open sockets.
+3. **CDN-cached polling keeps the load flat.** The CDN answers the polls, so the function and the feed see about one request every 10 seconds per region, whether 50 or 50,000 people are watching.
+4. **Scores change slowly.** A rugby match has roughly 10–15 scoring events in 80 minutes. A new score typically shows within about 25 seconds of the feed (15-second poll plus a 10-second cache), comparable to the delay on a TV stream. Pushing faster can even spoil a try for someone watching a delayed stream.
+5. **The data only flows one way.** Even for push, scores don't need a two-way channel. Server-Sent Events would be the simpler step: plain HTTP, with reconnection built in.
+
+When I'd switch:
+
+| Situation | Better fit |
+|---|---|
+| Fans send data back: live predictions, polls, chat, reactions | WebSockets (two-way) |
+| Updates need to arrive within seconds: play-by-play, in-match stats | SSE or WebSockets |
+| Many simultaneous matches (a World Cup weekend), each fan following a few | Push only the matches each client subscribes to |
+| An official data provider that pushes events | Consume the push upstream; fan out over SSE/WebSockets |
+
+At Rugby World Cup scale I'd expect a mix: cached pages and CDN-backed polling for the bulk of anonymous traffic, plus a push channel for interactive features. On AWS that could be API Gateway WebSocket APIs; on Cloudflare, Durable Objects.
+
 ## Results
 
 Lighthouse 12, mobile preset, simulated throttling. Run `pnpm lighthouse <url>` to reproduce (median of 3).
@@ -89,7 +110,7 @@ pnpm build && pnpm start
 - The feed is unofficial and can change without notice. Moving to an official provider means replacing [`espn.ts`](src/lib/espn.ts) with another adapter. Nothing else changes.
 - Unknown competition URLs render the 404 page with `noindex`, but with HTTP 200, a side effect of partial prerendering streaming the response before `notFound()` runs.
 - On Vercel, `revalidateTag` purges the CDN as well. On another host, pair it with a CDN purge.
-- Next steps: round numbers (the feed doesn't carry them), Wallaroos tests, World Cup pool tables once results exist, and an SSE channel to replace polling when there are many concurrent matches.
+- Next steps: round numbers (the feed doesn't carry them), Wallaroos tests, World Cup pool tables once results exist, and a push channel once there are many concurrent matches or two-way features (see [Why polling, not WebSockets](#why-polling-not-websockets)).
 
 ---
 
