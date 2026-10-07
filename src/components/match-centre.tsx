@@ -164,15 +164,37 @@ function Hero({ fixture: f }: { fixture: DisplayFixture }) {
           : `Next up: ${f.home.name} versus ${f.away.name}`}
       </h2>
 
+      {/*
+        Phones: a scoreboard, one team per row with its score beside it.
+        A single long word ("Hurricanes") can't wrap, so a side-by-side
+        face-off has nowhere to go at 390px.
+      */}
+      <div aria-hidden="true" className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-2 md:hidden">
+        <p className="break-words font-display text-[2.25rem] font-semibold leading-[1.05] tracking-[-0.02em]">
+          {f.home.name}
+        </p>
+        <p className="text-right font-mono text-[2.75rem] font-medium leading-none tabular-nums">
+          {showScore && <Score value={f.score!.home} />}
+        </p>
+        {!showScore && <p className="col-span-2 font-display text-xl italic leading-none text-ink-3">v</p>}
+        <p className="break-words font-display text-[2.25rem] font-semibold leading-[1.05] tracking-[-0.02em]">
+          {f.away.name}
+        </p>
+        <p className="text-right font-mono text-[2.75rem] font-medium leading-none tabular-nums">
+          {showScore && <Score value={f.score!.away} />}
+        </p>
+      </div>
+
+      {/* Wider screens: the face-off, home and away either side of the score. */}
       <div
         aria-hidden="true"
-        className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 md:gap-10"
+        className="hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-10 md:grid"
       >
-        <p className="text-right font-display text-[clamp(1.75rem,5.2vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.02em]">
+        <p className="text-right font-display text-[clamp(2.5rem,5.2vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.02em]">
           {f.home.name}
         </p>
         {showScore ? (
-          <p className="font-mono text-[clamp(2.5rem,8vw,7rem)] font-medium leading-none tracking-[-0.03em] tabular-nums">
+          <p className="font-mono text-[clamp(4rem,8vw,7rem)] font-medium leading-none tracking-[-0.03em] tabular-nums">
             <Score value={f.score!.home} />
             <span className="mx-[0.12em] text-ink-3">–</span>
             <Score value={f.score!.away} />
@@ -180,12 +202,12 @@ function Hero({ fixture: f }: { fixture: DisplayFixture }) {
         ) : (
           <p className="font-display text-[clamp(1.25rem,2.6vw,2.25rem)] italic leading-none text-ink-3">v</p>
         )}
-        <p className="font-display text-[clamp(1.75rem,5.2vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.02em]">
+        <p className="font-display text-[clamp(2.5rem,5.2vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.02em]">
           {f.away.name}
         </p>
       </div>
 
-      <div className="mt-8 flex flex-wrap items-baseline justify-center gap-x-6 gap-y-1 text-center">
+      <div className="mt-8 flex flex-wrap items-baseline gap-x-6 gap-y-1 md:justify-center md:text-center">
         {!showScore && (
           <p className="font-mono text-2xl font-medium tabular-nums">
             <time dateTime={f.kickoff}>{f.display.time}</time>{" "}
@@ -197,7 +219,7 @@ function Hero({ fixture: f }: { fixture: DisplayFixture }) {
         </p>
       </div>
       {!showScore && (
-        <div className="mt-1 text-center">
+        <div className="mt-1 md:text-center">
           <LocalTime iso={f.kickoff} venueTimeZone={f.venue.timeZone} />
         </div>
       )}
