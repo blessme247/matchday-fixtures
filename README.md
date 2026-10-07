@@ -4,7 +4,7 @@ A fixtures, results and ladder page built for the traffic of a match day, on **r
 
 The fixtures are in the HTML on first load. During a match, the score updates in open tabs without a reload. When a match kicks off or finishes, the cached page refreshes itself without a redeploy.
 
-**Live:** _<vercel url>_ · **Stack:** pnpm, Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS 4, MongoDB Atlas, Vercel
+**Live:** https://matchday-fixtures.vercel.app · **Stack:** pnpm, Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS 4, MongoDB Atlas, Vercel
 
 **Design:** editorial rather than app-like: Fraunces for display, Manrope for text, IBM Plex Mono for scores and times, set on ruled rows instead of boxed cards. Colour carries meaning: **gold = in play now, green = settled**. Motion is limited to what explains a change: a score ticks when it updates, and a small pulse marks a live match. Nothing animates on first paint, because entrance animations delay LCP.
 
@@ -51,16 +51,17 @@ What the feed doesn't give you, and how the app handles it:
 
 Lighthouse 12, mobile preset, simulated throttling. Run `pnpm lighthouse <url>` to reproduce (median of 3).
 
-| Metric | Reference page | This prototype |
+| Metric | Reference page | This prototype (live) |
 |---|---|---|
 | Performance | 38 | 96–97 |
 | Accessibility | 71 | 100 |
-| LCP | 23.1 s | 2.5–2.7 s |
-| Total Blocking Time | 1,930 ms | 40–50 ms |
+| Best practices / SEO | 61 / 92 | 100 / 100 |
+| LCP | 23.1 s | 2.4 s |
+| Total Blocking Time | 1,930 ms | 46–80 ms |
 | CLS | 0.001 | 0 |
-| Page weight | 3.2 MB | ~290 KB |
+| Page weight | 3.2 MB | ~280 KB |
 
-**This is not a like-for-like comparison.** The prototype carries no ads, analytics or consent tooling, and those account for a large share of a production site's JavaScript. The prototype numbers are from `localhost` (all three competition pages) and will be replaced with the deployed numbers. The point is the architecture: data in the HTML, a cached and reconciled ladder, and live updates that don't re-render the page.
+**This is not a like-for-like comparison.** The prototype carries no ads, analytics or consent tooling, and those account for a large share of a production site's JavaScript. Prototype numbers are medians of 3 runs against the live deployment (all three competition pages), measured 7 Oct 2026, from outside Australia. The point is the architecture: data in the HTML, a cached and reconciled ladder, and live updates that don't re-render the page.
 
 ## Run it
 
